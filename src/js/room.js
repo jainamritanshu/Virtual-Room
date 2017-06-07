@@ -116,7 +116,7 @@ function test2(){
 	console.log(mp4box.id);
 	mp4box.onReady = function (info) {
 	console.log("Received File Information");
-	console.log(info);
+	console.log(info)
 	}
 }
 
