@@ -7,14 +7,18 @@ var baseURL = "http://p2psp.org/virtual-room/room/" // Will be changed according
 var peerID = 'xxxxxxxx'.replace(/[xy]/g, function(c) {var r = Math.random()*16|0,v=c=='x'?r:r&0x3|0x8;return v.toString(16);}); // Generating UUID(taking only the first section of the string) according to the RFC4122 version 4(https://www.ietf.org/rfc/rfc4122.txt)
 console.log(peerID);
 
+window.onload = function(){
+	generateURL();
+}
+
 // Filling placeholders after the video has been loaded
-vid.addEventListener("loadedmetadata", function(e){
-	vid.setAttribute("width",vid.videoWidth); // Set the video frame size as per the aspect ratio of the video
-	vidWidth.innerHTML = (vid.videoWidth+"px").bold();
-	vidHeight.innerHTML = (vid.videoHeight+"px").bold();
+// vid.addEventListener("loadedmetadata", function(e){
+	// vid.setAttribute("width",vid.videoWidth); // Set the video frame size as per the aspect ratio of the video
+	// vidWidth.innerHTML = (vid.videoWidth+"px").bold();
+	// vidHeight.innerHTML = (vid.videoHeight+"px").bold();
 	// aspectRatio.innerText = vidWidth/vidHeight;
 
-},false);
+// },false);
 
 // function widthChange(){
 //     var widthInput = document.getElementById("width-input");
@@ -35,10 +39,11 @@ vidFile.onchange = function(){
 function streamVideo(){
 	// Make a separate function to load the video and call it in the main streamVideo() function
 	console.log(vidFile.value);
-	var source = document.getElementById("video-source");
-	var vidURL = URL.createObjectURL(vidFile.files[0]);
-	vid.src = vidURL;
-	vid.play();
+	// var source = document.getElementById("video-source");
+	// var vidURL = URL.createObjectURL(vidFile.files[0]);
+	// vid.src = vidURL;
+	test2();
+	// vid.play();
 };
 
 function copyBroadcastURL(){
@@ -54,7 +59,7 @@ function copyBroadcastURL(){
 
 // Function to be modified to contain logic of generating url
 function generateURL(){
-	broadcastURL.innerHTML = (baseURL+peerID).bold();
+	broadcastURL.innerHTML = baseURL+peerID;
 }
 
 // disconnect the peer from the room
@@ -80,3 +85,39 @@ function addPeer(){
 	peerMediaElements.appendChild(peerMediaDiv);
 	peerNum.innerText = peerNumUpdated;
 }	
+
+function test(){
+	$.getScript("../js/mp4box.all.js");
+	var mp4box = new MP4Box();
+console.log(mp4box);
+
+}
+
+function test2(){
+	var mp4box = new MP4Box;
+	console.log(1);
+	var reader = new FileReader();
+	reader.onloadend = function(evt) {
+		console.log(evt);
+      if (evt.target.readyState == FileReader.DONE) { // DONE == 2
+	var arrayBuffer = evt.target.result;
+	console.log(evt.target);
+}
+}
+	// reader.readAsArrayBuffer(vidFile.files[0])
+	// var arrayBuffer = reader.readAsArrayBuffer(vidFile.files[0])
+	// console.log(reader.readAsArrayBuffer(vidFile.files[0]));
+	// arrayBuffer.fileStart = 0;
+	// mp4box.appendBuffer(arrayBuffer);
+	console.log(mp4box);
+	mp4box.onMoovStart = function () {
+	console.log("Starting to receive File Information");
+	}
+	console.log(mp4box.id);
+	mp4box.onReady = function (info) {
+	console.log("Received File Information");
+	console.log(info);
+	}
+}
+
+
