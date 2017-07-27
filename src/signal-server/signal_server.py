@@ -40,6 +40,10 @@ class Signal(WebSocket):
 				rooms[room_index]["peers"][0]["peer_self"].sendMessage(str('{"newPeer": "true", "server_id": '+str(peer_id_server)+'}'))
 				# peer_id_server+=1
 				print(rooms)
+			elif 'exitPeer' in message:
+				peer_id_server = message["peerIDServer"]
+				room_index = next(rooms.index(room) for room in rooms if room['roomID'] == message['roomID'])
+				rooms[room_index]["peers"].pop(peer_id_server)
 			elif 'addRoom' in message:
 				rooms.append({"roomID": message["roomID"], "peers": [], "peer_id_list": []})
 				print(rooms)

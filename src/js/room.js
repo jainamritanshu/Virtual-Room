@@ -64,6 +64,7 @@ window.onbeforeunload = function exitPeer(){
 			peerChannel[currentPeer].send(JSON.stringify({"peerID": alias, "exitPeer": true, "peerIDServer": peerIDServer}));
 		}
 	});
+	signalServer.send(JSON.stringify({"exitPeer": true, "peerIDServer": peerIDServer}));
 }
 
 generateURL();
@@ -569,8 +570,8 @@ function sendOffer(){
 }
 
 // Create Local description for a new peer in the room(Generate Local description containing session description protocol)
-function createLocalDescription(offer){
-	peerConnection[currentPeer].setLocalDescription(offer)
+function createLocalDescription(answer){
+	peerConnection[currentPeer].setLocalDescription(answer)
 	.then(function(){
 		console.log("offer sent to "+currentPeer.toString());
 		console.log(peerID);
@@ -614,6 +615,7 @@ function gotMessageFromServer(message) {
 			window.localStream.getTracks().forEach(
 				function(track) {
 					console.log("adding stream to "+currentPeer);
+					console.log(track.id);
 					console.log(peerConnection[currentPeer]);
 					peerConnection[currentPeer].addTrack(
 						track,
@@ -628,10 +630,14 @@ function gotMessageFromServer(message) {
     }
 
     if(message.sessionDescriptionProtocol) {
-        peerConnection[currentPeer].setRemoteDescription(new RTCSessionDescription(message.sessionDescriptionProtocol), function() {
+    		console.log(message.sessionDescriptionProtocol.type)
             if(message.sessionDescriptionProtocol.type == 'offer') {
-                peerConnection[currentPeer].createAnswer().then(function(offer){
-                	createLocalDescription(offer);
+        		peerConnection[currentPeer].setRemoteDescription(message.sessionDescriptionProtocol)
+        		.then(function(){
+        		    return peerConnection[currentPeer].createAnswer();
+        		})
+        		.then(function(answer){
+                	createLocalDescription(answer);
                 })
                 .catch(logError)
             }else{
@@ -640,10 +646,10 @@ function gotMessageFromServer(message) {
             	.catch(logError);
             }
 
-        });
+        // });
     } else if(message.candidate) {
     	console.log("adding");
-        peerConnection[currentPeer].addIceCandidate(new RTCIceCandidate(message.candidate));
+        peerConnection[currentPeer].addIceCandidate(message.candidate);
     	console.log("added");
     }
 
@@ -816,8 +822,12 @@ function setupChannel(currentPeer){
 
 			if(message.exitPeer){
 				Materialize.toast(message.peerID+' said goodbye!', 3000);
-				var peerIndex = peerConnections.indexOf(message.peerIDServer)
+				var peerIndex = peerConnections.indexOf(message.peerIDServer);
+				var exitPeerMedia = document.getElementById("user-media-"+message.peerIDServer);
+				exitPeerMedia.parentNode.parentNode.removeChild(exitPeerMedia.parentNode);
 				peerConnections.splice(peerIndex, 1);
+				var peerNumUpdated = 1+peerConnections.length;
+				peerNum.innerHTML = "<b>"+peerNumUpdated.toString()+"</b>";
 			}
 
 			if(message.aliasList){
@@ -915,6 +925,7 @@ function gotLocalStream(localStream, currentPeer){
 		window.localStream.getTracks().forEach(
 			function(track) {
 				console.log("adding stream to "+currentPeer);
+				console.log(track.id);
 				console.log(peerConnection[currentPeer]);
 				peerConnection[currentPeer].addTrack(
 					track,
@@ -929,6 +940,7 @@ function gotLocalStream(localStream, currentPeer){
 // gotRemoteStream called two times on addition of both audio and video tracks
 function gotRemoteStream(event){ 
 	console.log(event.track.kind);
+	console.log(event.track.id);
 	var peerMediaVideo;
 	// Removing the new temporary div(if made) made during setting up data channel
 	if(event.track.kind == "audio"){ // To avoid making two separate elements
@@ -956,6 +968,7 @@ function gotRemoteStream(event){
 	}else{
 		var peerMediaVideo = document.getElementById("user-media-"+currentPeer);
 		console.log(peerMediaVideo);
+		peerMediaVideo.autoplay = true;
 		peerMediaVideo.srcObject = event.streams[0];
 	}
 }
